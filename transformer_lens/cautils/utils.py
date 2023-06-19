@@ -16,6 +16,7 @@ from torch import Tensor
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from rich import print as rprint
+import itertools
 from transformer_lens import utils, HookedTransformer, ActivationCache
 import plotly.express as px
 import plotly.graph_objects as go
