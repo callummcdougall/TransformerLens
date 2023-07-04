@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import re
 import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
@@ -13,18 +14,16 @@ import transformers
 from datasets.arrow_dataset import Dataset
 from datasets.load import load_dataset
 from huggingface_hub import hf_hub_download
+from jaxtyping import Float, Int
 from rich import print as rprint
 from transformers import AutoTokenizer
 
 from transformer_lens import FactoredMatrix
 
 CACHE_DIR = transformers.TRANSFORMERS_CACHE
-import json
-
-from jaxtyping import Float, Int
 
 
-def _select_compatible_kwargs(
+def select_compatible_kwargs(
     kwargs_dict: Dict[str, Any], callable: Callable
 ) -> Dict[str, Any]:
     """Return a dict with the elements kwargs_dict that are parameters of callable"""
@@ -53,7 +52,7 @@ def download_file_from_hf(
         filename=file_name,
         subfolder=subfolder,
         cache_dir=cache_dir,
-        **_select_compatible_kwargs(kwargs, hf_hub_download),
+        **select_compatible_kwargs(kwargs, hf_hub_download),
     )
 
     # Load to the CPU device if CUDA is not available
@@ -477,10 +476,10 @@ class Slice:
             ValueError: If the slice is not an integer and max_ctx is not specified.
         """
         if self.mode == "int":
-            return np.array([self.slice])
+            return np.array([self.slice], dtype=np.int64)
         if max_ctx is None:
             raise ValueError("max_ctx must be specified if slice is not an integer")
-        return np.arange(max_ctx)[self.slice]
+        return np.arange(max_ctx, dtype=np.int64)[self.slice]
 
     def __repr__(
         self,

@@ -1282,9 +1282,12 @@ class HookedTransformer(HookedRootModule):
         we concatenate them to W_Q and W_K to simulate a d_model+1 dimensional
         input (whose final coordinate is always 1), do the SVD factorization on
         this effective matrix, then separate out into final weights and biases
-
-
         """
+
+        assert (
+            self.cfg.positional_embedding_type != "rotary"
+        ), "You can't refactor the QK circuit when using rotary embeddings (as the QK matrix depends on the position of the query and key)"
+
         for l in range(self.cfg.n_layers):
             # W_QK = W_Q @ W_K.T
             # Concatenate biases to make a d_model+1 input dimension
@@ -1334,14 +1337,14 @@ class HookedTransformer(HookedRootModule):
 
         return state_dict
 
-    def set_use_attn_result(self, use_attn_result):
+    def set_use_attn_result(self, use_attn_result: bool):
         """
         Toggles whether to explicitly calculate and expose the result for each attention head - useful for
         interpretability but can easily burn through GPU memory.
         """
         self.cfg.use_attn_result = use_attn_result
 
-    def set_use_split_qkv_input(self, use_split_qkv_input):
+    def set_use_split_qkv_input(self, use_split_qkv_input: bool):
         """
         Toggles whether to allow editing of inputs to each attention head.
         """
